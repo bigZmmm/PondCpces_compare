@@ -45,7 +45,9 @@ bool AStar::step(){
 			// printf("goal BDD is :");
 			// printBDD(next->dd);
 			cout << "Found branch!\n";
-			printBestPlan();//输出最佳方案
+			// printBestPlan();//输出最佳方案
+			planlist(candidateplan);	// zyc 存储规划序列到candidateplan中
+			std::cout << "successfully found candidateplan" << std::endl;
 		}
 
 		return false;// 返回false停止搜索
@@ -184,7 +186,7 @@ bool AStar::step(){
 		bool isClosed = (closed.count(child) > 0);// 已经搜索过了
 		bool cheaper = (new_g < child->g);// 是否比之前到达该child更便宜
 		// 仅考虑没有被访问的情况
-		// 在open中还没用拓展。1.不在open 2在open但更近，更新preAction
+		// 在open中还没用拓展。1.不在open 2在open更近但更近，更新preAction
 		if(!isClosed && (!inFringe || (inFringe && cheaper))){
 			child->BestPrevAction = action;// 这里每个state的BestPreAction都设置了
 
@@ -287,6 +289,40 @@ void AStar::printBestPlan()
 		plan.pop();
 		actNode->act->print(std::cout, my_problem->terms());
 		std::cout << "\n";
+	}
+	std::cout << "Plan Length is: " << i << std::endl;
+}
+
+/**
+ * zyc12.27
+*/
+void AStar::planlist(std::vector<const Action*> &candplan){
+	ActionNode *actNode;
+	StateNode *stateNode = next;
+	std::stack<ActionNode *> plan;
+	int i = 0;
+	std::cout << "start to print plan\n"
+			  << std::flush;
+	while (next->dd != start->dd)
+	{
+		if(next->BestPrevAction == NULL)
+		{
+			std::cout << "Plan abstract error\n"
+					  << std::flush;
+			abort();
+		}
+		i++;
+		plan.push(next->BestPrevAction);
+		next = next->BestPrevAction->PrevState;
+	}
+	// 将栈里的动作ActioNode转化到vector中的Action
+	while(!plan.empty())
+	{
+		actNode = plan.top();
+		plan.pop();
+		actNode->act->print(std::cout, my_problem->terms());
+		std::cout << "\n";
+		candplan.push_back(actNode->act);
 	}
 	std::cout << "Plan Length is: " << i << std::endl;
 }

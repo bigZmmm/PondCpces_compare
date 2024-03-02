@@ -40,6 +40,7 @@
 #include "lao_wrapper.h"
 #include <float.h>
 #include "solve.h"
+#include "graph_wrapper.h"  // pickKRandomWorlds
 
 extern int gnum_cond_effects;
 /* Verbosity level. */
@@ -2211,6 +2212,8 @@ std::pair<DdNode*, DdNode*> action_mtbdds(const Action& action,
 	 * all transition sets for each outcome have mutually exclusive
 	 * conditions.
 	 */
+	// 注释掉输出
+	/*
 	std::cout << "####### start action mtbdds######\n";
 	action.print(std::cout, problem.terms());
 	std::cout << std::endl;
@@ -2218,6 +2221,7 @@ std::pair<DdNode*, DdNode*> action_mtbdds(const Action& action,
 	std::cout << std::endl;
 	action.effect().print(std::cout, problem.domain().predicates(), problem.domain().functions(), problem.terms());
 	std::cout << std::endl;
+	*/
 
 	//printBDD(ddng);
 
@@ -2514,7 +2518,8 @@ std::pair<DdNode*, DdNode*> action_mtbdds(const Action& action,
 	// 	Cudd_Ref(ddP);
 	// 	Cudd_RecursiveDeref(manager, nd);
 	// }
-	std::cout << "####### end action mtbdds######\n";
+	// 注释掉输出
+	// std::cout << "####### end action mtbdds######\n";
 	return std::make_pair(ddD, ddR);
 }
 
@@ -2774,7 +2779,7 @@ void collectInit(const Problem* problem){
 	/*
 	 * Construct an ADD representing initial states.
 	 */
-
+	std::list<DdNode *> worlds;	// zyc 初始化时存放初始状态
 	problem->init_formula().print(std::cout, problem->domain().predicates(),
 			problem->domain().functions(),
 			problem->terms());
@@ -2783,7 +2788,10 @@ void collectInit(const Problem* problem){
 	if(&problem->init_formula()){
 		// std::cout << "construct the bdd for init formula\n";
 		collect_init_state_variables(problem->init_formula()); // 公式中涉及到的状态变量即atom
-		DdNode* tmp = formula_bdd(problem->init_formula());// 根据初始状态公式创建BDD
+		// zyc 提取一个可能的初始状态
+		DdNode* tmp1 = formula_bdd(problem->init_formula());// 根据初始状态公式创建BDD
+		pickKRandomWorlds(tmp1, 1, &worlds);
+		DdNode *tmp = worlds.front();
 		Cudd_Ref(tmp);
 		
 		for(int i = 0; i < num_alt_facts; i++){//考虑每个状态变量
@@ -2803,7 +2811,7 @@ void collectInit(const Problem* problem){
 				}
 			}
 		}
-		// 记录初始状态集合，这里为何需要合取所有状态变量的否定？
+		// zyc 初始化样本(b_initial_state)完毕，为一个可能的初始状态
 		b_initial_state = tmp;
 		Cudd_Ref(b_initial_state);
 		Cudd_RecursiveDeref(manager, tmp);

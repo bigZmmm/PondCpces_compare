@@ -427,6 +427,10 @@ public:
 extern __gnu_cxx::StateHash* StateIndex;
 extern __gnu_cxx::StateHash* LeafStates;
 
+extern std::vector<const Action*> candidateplan;
+extern DdNode* counterexample;
+extern DdNode *init_states;
+
 extern  DdNode* b_initial_state;
 extern  DdNode* b_goal_state;
 extern char *HOST;
